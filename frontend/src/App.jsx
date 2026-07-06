@@ -7,6 +7,7 @@ import MainLayout from './components/layout/MainLayout.jsx';
 import AdminLayout from './components/layout/AdminLayout.jsx';
 import LoadingScreen from './components/ui/LoadingScreen.jsx';
 import AuthInitializer from './components/auth/AuthInitializer.jsx';
+import { SocketProvider } from './context/SocketContext.jsx';
 
 // Lazy loaded pages
 const Home = lazy(() => import('./pages/Home.jsx'));
@@ -67,8 +68,9 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AuthInitializer>
-          <Suspense fallback={<LoadingScreen />}>
-            <Routes>
+          <SocketProvider>
+            <Suspense fallback={<LoadingScreen />}>
+              <Routes>
               {/* Auth Routes */}
               <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
               <Route path="/register" element={<AuthRoute><Register /></AuthRoute>} />
@@ -127,6 +129,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
+          </SocketProvider>
         </AuthInitializer>
 
         <Toaster

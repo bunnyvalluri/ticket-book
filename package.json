@@ -1,0 +1,13 @@
+{
+  "name": "cinemax-root",
+  "version": "1.0.0",
+  "description": "Root package manager for CineMax project",
+  "scripts": {
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\""
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

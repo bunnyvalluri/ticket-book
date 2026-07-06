@@ -176,9 +176,14 @@ export const createMovie = async (req, res, next) => {
       .replace(/-+/g, '-')
       .trim();
 
-    const posterUrl = req.files?.poster?.[0]?.path;
-    const bannerUrl = req.files?.banner?.[0]?.path;
+    const posterUrl = req.files?.poster?.[0]?.path || req.body.posterUrl;
+    const bannerUrl = req.files?.banner?.[0]?.path || req.body.bannerUrl;
     const trailerUrl = req.body.trailerUrl;
+
+    const genresParsed = typeof genres === 'string' ? JSON.parse(genres) : genres;
+    const languagesParsed = typeof languages === 'string' ? JSON.parse(languages) : languages;
+    const castParsed = typeof cast === 'string' ? JSON.parse(cast) : cast;
+    const crewParsed = typeof crew === 'string' ? JSON.parse(crew) : crew;
 
     const movie = await prisma.movie.create({
       data: {
@@ -189,35 +194,35 @@ export const createMovie = async (req, res, next) => {
         posterUrl,
         bannerUrl,
         trailerUrl,
-        duration: parseInt(duration),
+        duration: duration ? parseInt(duration) : 120,
         releaseDate: releaseDate ? new Date(releaseDate) : null,
         endDate: endDate ? new Date(endDate) : null,
         imdbRating: imdbRating ? parseFloat(imdbRating) : null,
         status: status || 'COMING_SOON',
         ageRating,
         country,
-        isFeatured: isFeatured === 'true',
-        isTrending: isTrending === 'true',
+        isFeatured: isFeatured === 'true' || isFeatured === true,
+        isTrending: isTrending === 'true' || isTrending === true,
         metaTitle: metaTitle || title,
         metaDescription,
-        ...(genres?.length && {
+        ...(genresParsed?.length && {
           genres: {
-            create: genres.map((genreId) => ({ genreId })),
+            create: genresParsed.map((genreId) => ({ genreId })),
           },
         }),
-        ...(languages?.length && {
+        ...(languagesParsed?.length && {
           languages: {
-            create: languages.map((languageId) => ({ languageId })),
+            create: languagesParsed.map((languageId) => ({ languageId })),
           },
         }),
-        ...(cast?.length && {
+        ...(castParsed?.length && {
           cast: {
-            create: JSON.parse(cast).map((c, i) => ({ ...c, order: i })),
+            create: castParsed.map((c, i) => ({ ...c, order: i })),
           },
         }),
-        ...(crew?.length && {
+        ...(crewParsed?.length && {
           crew: {
-            create: JSON.parse(crew),
+            create: crewParsed,
           },
         }),
       },

@@ -108,11 +108,31 @@ export const useNotificationStore = create((set, get) => ({
   unreadCount: 0,
 
   addNotification: (notif) => {
+    set((state) => {
+      // Don't add duplicate notifications if they already exist
+      if (state.notifications.some((n) => n.id === notif.id)) return state;
+      return {
+        notifications: [notif, ...state.notifications].slice(0, 50),
+        unreadCount: state.unreadCount + (notif.isRead ? 0 : 1),
+      };
+    });
+  },
+  markRead: (id) => {
+    set((state) => {
+      const isUnread = state.notifications.find((n) => n.id === id && !n.isRead);
+      return {
+        notifications: state.notifications.map((n) =>
+          n.id === id ? { ...n, isRead: true } : n
+        ),
+        unreadCount: isUnread ? Math.max(0, state.unreadCount - 1) : state.unreadCount,
+      };
+    });
+  },
+  markAllRead: () => {
     set((state) => ({
-      notifications: [notif, ...state.notifications].slice(0, 50),
-      unreadCount: state.unreadCount + 1,
+      notifications: state.notifications.map((n) => ({ ...n, isRead: true })),
+      unreadCount: 0,
     }));
   },
-  markAllRead: () => set({ unreadCount: 0 }),
   clearAll: () => set({ notifications: [], unreadCount: 0 }),
 }));

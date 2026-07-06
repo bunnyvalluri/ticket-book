@@ -2,7 +2,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthStore, useUIStore, useNotificationStore } from '../../store/index.js';
-import { authAPI } from '../../services/api.js';
+import { authAPI, notificationAPI } from '../../services/api.js';
 import toast from 'react-hot-toast';
 import {
   FiSearch, FiX, FiBell, FiUser, FiLogOut, FiBookmark,
@@ -17,10 +17,11 @@ export default function Navbar() {
   const location = useLocation();
   const { user, isAuthenticated, logout } = useAuthStore();
   const { selectedCity, setCity, searchQuery, setSearchQuery, isSearchOpen, setSearchOpen } = useUIStore();
-  const { unreadCount } = useNotificationStore();
+  const { notifications, unreadCount, markRead, markAllRead, clearAll } = useNotificationStore();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [cityDropdown, setCityDropdown] = useState(false);
   const [userDropdown, setUserDropdown] = useState(false);
+  const [notifDropdown, setNotifDropdown] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const searchRef = useRef(null);
 
@@ -48,6 +49,35 @@ export default function Navbar() {
     if (searchQuery.trim()) {
       navigate(`/?search=${encodeURIComponent(searchQuery)}`);
       setSearchOpen(false);
+    }
+  };
+
+  const handleMarkAllRead = async () => {
+    try {
+      await notificationAPI.markAllRead();
+      markAllRead();
+      toast.success('All notifications marked as read');
+    } catch (err) {
+      toast.error('Failed to mark notifications read');
+    }
+  };
+
+  const handleClearAll = async () => {
+    try {
+      await notificationAPI.clearAll();
+      clearAll();
+      toast.success('All notifications cleared');
+    } catch (err) {
+      toast.error('Failed to clear notifications');
+    }
+  };
+
+  const handleMarkOneRead = async (id) => {
+    try {
+      await notificationAPI.markAsRead(id);
+      markRead(id);
+    } catch (err) {
+      console.error('Failed to mark read:', err);
     }
   };
 
@@ -172,19 +202,93 @@ export default function Navbar() {
             {isAuthenticated ? (
               <>
                 {/* Notifications */}
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="btn-ghost p-2 rounded-xl relative"
-                >
-                  <FiBell size={18} />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold flex items-center justify-center rounded-full"
-                      style={{ background: '#ec4899', color: 'white' }}>
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </motion.button>
+                <div className="relative">
+                  <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => { setNotifDropdown(!notifDropdown); setUserDropdown(false); }}
+                    className="btn-ghost p-2 rounded-xl relative"
+                  >
+                    <FiBell size={18} />
+                    {unreadCount > 0 && (
+                      <span className="absolute -top-1 -right-1 w-4 h-4 text-[10px] font-bold flex items-center justify-center rounded-full"
+                        style={{ background: '#ec4899', color: 'white' }}>
+                        {unreadCount > 9 ? '9+' : unreadCount}
+                      </span>
+                    )}
+                  </motion.button>
+
+                  <AnimatePresence>
+                    {notifDropdown && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10, scale: 0.95 }}
+                        animate={{ opacity: 1, y: 0, scale: 1 }}
+                        exit={{ opacity: 0, y: -10, scale: 0.95 }}
+                        className="absolute right-0 top-10 glass rounded-2xl overflow-hidden shadow-2xl w-[320px] md:w-[360px]"
+                        style={{ zIndex: 1000 }}
+                      >
+                        <div className="p-4 border-b flex items-center justify-between" style={{ borderColor: '#2d2d4a' }}>
+                          <div>
+                            <h3 className="font-bold text-sm text-white">Notifications</h3>
+                            <p className="text-[10px]" style={{ color: '#606080' }}>
+                              You have {unreadCount} unread notifications
+                            </p>
+                          </div>
+                          <div className="flex gap-2 text-xs">
+                            {unreadCount > 0 && (
+                              <button onClick={handleMarkAllRead} className="text-purple-400 hover:text-purple-300 font-semibold cursor-pointer">
+                                Mark read
+                              </button>
+                            )}
+                            {notifications.length > 0 && (
+                              <button onClick={handleClearAll} className="text-red-400 hover:text-red-300 font-semibold cursor-pointer">
+                                Clear all
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="max-h-[300px] overflow-y-auto scrollbar-thin divide-y" style={{ divideColor: '#2d2d4a' }}>
+                          {notifications.length === 0 ? (
+                            <div className="p-8 text-center text-xs" style={{ color: '#606080' }}>
+                              <FiBell className="mx-auto mb-2 text-lg opacity-40" />
+                              No notifications yet
+                            </div>
+                          ) : (
+                            notifications.map((notif) => (
+                              <div
+                                key={notif.id}
+                                onClick={() => {
+                                  if (!notif.isRead) handleMarkOneRead(notif.id);
+                                  if (notif.data?.bookingId) navigate(`/bookings/${notif.data.bookingId}/ticket`);
+                                  setNotifDropdown(false);
+                                }}
+                                className={`p-4 text-left transition-all hover:bg-white/5 cursor-pointer flex gap-3 relative ${
+                                  !notif.isRead ? 'bg-purple-950/15' : ''
+                                }`}
+                              >
+                                {!notif.isRead && (
+                                  <span className="w-1.5 h-1.5 rounded-full bg-purple-500 absolute left-2 top-[22px] shrink-0 animate-pulse" />
+                                )}
+                                <div className="pl-1">
+                                  <p className="font-bold text-xs text-white leading-tight flex items-center justify-between">
+                                    {notif.title}
+                                    <span className="text-[9px] font-normal" style={{ color: '#606080' }}>
+                                      {new Date(notif.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                                    </span>
+                                  </p>
+                                  <p className="text-[11px] mt-1 leading-normal" style={{ color: notif.isRead ? '#8080a0' : '#a0a0c0' }}>
+                                    {notif.message}
+                                  </p>
+                                </div>
+                              </div>
+                            ))
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
 
                 {/* User Menu */}
                 <div className="relative">
@@ -302,8 +406,8 @@ export default function Navbar() {
       </div>
 
       {/* Click outside handler */}
-      {(cityDropdown || userDropdown) && (
-        <div className="fixed inset-0 z-40" onClick={() => { setCityDropdown(false); setUserDropdown(false); }} />
+      {(cityDropdown || userDropdown || notifDropdown) && (
+        <div className="fixed inset-0 z-40" onClick={() => { setCityDropdown(false); setUserDropdown(false); setNotifDropdown(false); }} />
       )}
     </motion.nav>
   );

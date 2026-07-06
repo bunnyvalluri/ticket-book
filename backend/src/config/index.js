@@ -59,6 +59,11 @@ export const config = {
 
   seatLockTimeout: parseInt(process.env.SEAT_LOCK_TIMEOUT_MS) || 600000, // 10 min
   
+  tmdb: {
+    apiKey: process.env.TMDB_API_KEY,
+    readAccessToken: process.env.TMDB_READ_ACCESS_TOKEN,
+  },
+
   isProduction: process.env.NODE_ENV === 'production',
   isDevelopment: process.env.NODE_ENV === 'development',
 };

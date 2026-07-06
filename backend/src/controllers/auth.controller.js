@@ -3,6 +3,7 @@ import { sendResponse } from '../utils/ApiResponse.js';
 import { ApiError } from '../utils/ApiError.js';
 import prisma from '../config/database.js';
 import { config } from '../config/index.js';
+import { getIO } from '../socket/index.js';
 
 const COOKIE_OPTIONS = {
   httpOnly: true,
@@ -15,6 +16,18 @@ export const register = async (req, res, next) => {
   try {
     const { firstName, lastName, email, password, phone } = req.body;
     const user = await authService.register({ firstName, lastName, email, password, phone });
+
+    const io = getIO();
+    if (io) {
+      io.to('admin:dashboard').emit('admin:dashboard_update', {
+        type: 'USER_REGISTERED',
+        user: {
+          id: user.id,
+          firstName: user.firstName,
+        }
+      });
+    }
+
     sendResponse(res, 201, { user }, 'Registration successful. Please verify your email.');
   } catch (error) {
     next(error);

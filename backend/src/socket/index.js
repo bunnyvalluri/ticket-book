@@ -6,6 +6,19 @@ import logger from '../config/logger.js';
 
 let io;
 
+let activeConnections = 0;
+const activeUsers = new Map(); // userId -> Set of socketIds
+
+const broadcastActiveUsers = () => {
+  if (!io) return;
+  const count = activeUsers.size;
+  const totalSockets = activeConnections;
+  io.to('admin:dashboard').emit('admin:active_users', {
+    activeUsersCount: count,
+    totalConnections: totalSockets,
+  });
+};
+
 export const initSocket = (httpServer) => {
   io = new Server(httpServer, {
     cors: {
@@ -37,10 +50,37 @@ export const initSocket = (httpServer) => {
   io.on('connection', (socket) => {
     logger.info(`Socket connected: ${socket.id} (user: ${socket.user?.id || 'anonymous'})`);
 
+    activeConnections++;
+    if (socket.user) {
+      if (!activeUsers.has(socket.user.id)) {
+        activeUsers.set(socket.user.id, new Set());
+      }
+      activeUsers.get(socket.user.id).add(socket.id);
+    }
+    broadcastActiveUsers();
+
     // Join user room for personal notifications
     if (socket.user) {
       socket.join(`user:${socket.user.id}`);
     }
+
+    // Join admin dashboard room
+    socket.on('admin:join', () => {
+      if (socket.user?.role === 'ADMIN' || socket.user?.role === 'SUPER_ADMIN') {
+        socket.join('admin:dashboard');
+        logger.info(`Admin socket joined dashboard room: ${socket.id}`);
+        // Send initial counts
+        socket.emit('admin:active_users', {
+          activeUsersCount: activeUsers.size,
+          totalConnections: activeConnections,
+        });
+      }
+    });
+
+    socket.on('admin:leave', () => {
+      socket.leave('admin:dashboard');
+      logger.info(`Admin socket left dashboard room: ${socket.id}`);
+    });
 
     // Join show room for real-time seat updates
     socket.on('show:join', (showId) => {
@@ -133,6 +173,18 @@ export const initSocket = (httpServer) => {
 
     // Handle disconnect — release all locks
     socket.on('disconnect', async () => {
+      activeConnections--;
+      if (socket.user) {
+        const userSockets = activeUsers.get(socket.user.id);
+        if (userSockets) {
+          userSockets.delete(socket.id);
+          if (userSockets.size === 0) {
+            activeUsers.delete(socket.user.id);
+          }
+        }
+      }
+      broadcastActiveUsers();
+
       if (socket.user) {
         try {
           const locks = await prisma.seatLock.findMany({

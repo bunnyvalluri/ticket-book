@@ -1,6 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'framer-motion';
 import { adminAPI } from '../../services/api.js';
+import { useSocket } from '../../context/SocketContext.jsx';
+import { useState, useEffect } from 'react';
+import toast from 'react-hot-toast';
 import {
   AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, PieChart, Pie, Cell
@@ -11,9 +14,11 @@ import {
 } from 'react-icons/fi';
 import CountUp from 'react-countup';
 
+const CountUpComponent = CountUp.default || CountUp;
+
 const COLORS = ['#7c3aed', '#ec4899', '#f59e0b', '#10b981', '#3b82f6'];
 
-const StatCard = ({ icon: Icon, label, value, prefix = '', suffix = '', change, color, delay = 0 }) => (
+const StatCard = ({ icon: Icon, label, value, prefix = '', suffix = '', change, color, delay = 0, isLive = false }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
@@ -35,10 +40,16 @@ const StatCard = ({ icon: Icon, label, value, prefix = '', suffix = '', change, 
       )}
     </div>
     <div>
-      <p className="text-2xl font-black" style={{ color: '#f0f0f8' }}>
+      <p className="text-2xl font-black flex items-center gap-2" style={{ color: '#f0f0f8' }}>
         {prefix}
-        <CountUp end={typeof value === 'number' ? value : 0} duration={1.5} separator="," decimals={prefix === '₹' ? 0 : 0} />
+        <CountUpComponent end={typeof value === 'number' ? value : 0} duration={1.5} separator="," decimals={prefix === '₹' ? 0 : 0} />
         {suffix}
+        {isLive && (
+          <span className="relative flex h-2 w-2">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500"></span>
+          </span>
+        )}
       </p>
       <p className="text-sm mt-1" style={{ color: '#606080' }}>{label}</p>
     </div>
@@ -60,10 +71,14 @@ const CustomTooltip = ({ active, payload, label }) => {
 };
 
 export default function AdminDashboard() {
+  const { socket } = useSocket();
+  const queryClient = useQueryClient();
+  const [activeUsers, setActiveUsers] = useState(1);
+  const [totalConnections, setTotalConnections] = useState(1);
+
   const { data: statsData, isLoading } = useQuery({
     queryKey: ['admin-dashboard'],
     queryFn: adminAPI.getDashboard,
-    refetchInterval: 30000, // refresh every 30s
   });
 
   const { data: revenueData } = useQuery({
@@ -80,6 +95,48 @@ export default function AdminDashboard() {
     queryKey: ['admin-user-growth'],
     queryFn: adminAPI.getUserGrowth,
   });
+
+  // Socket real-time invalidations & user tracking
+  useEffect(() => {
+    if (!socket) return;
+
+    socket.emit('admin:join');
+
+    const handleDashboardUpdate = (data) => {
+      // Invalidate queries so Recharts updates smoothly
+      queryClient.invalidateQueries({ queryKey: ['admin-dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-revenue'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-top-movies'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-user-growth'] });
+
+      // Live dashboard update toast
+      toast.success(
+        <div className="flex flex-col gap-0.5">
+          <p className="font-bold text-xs text-white uppercase tracking-wider">Dashboard Updated</p>
+          <p className="text-xs text-purple-200">
+            {data.type === 'BOOKING_CONFIRMED' ? 'New ticket booking confirmed! 🎫' :
+             data.type === 'USER_REGISTERED' ? 'New customer registered! 👥' :
+             data.type === 'BOOKING_CANCELLED' ? 'Booking cancelled. ❌' : 'Dashboard metrics updated!'}
+          </p>
+        </div>,
+        { icon: '📊', duration: 4000 }
+      );
+    };
+
+    const handleActiveUsers = (data) => {
+      setActiveUsers(data.activeUsersCount);
+      setTotalConnections(data.totalConnections);
+    };
+
+    socket.on('admin:dashboard_update', handleDashboardUpdate);
+    socket.on('admin:active_users', handleActiveUsers);
+
+    return () => {
+      socket.emit('admin:leave');
+      socket.off('admin:dashboard_update', handleDashboardUpdate);
+      socket.off('admin:active_users', handleActiveUsers);
+    };
+  }, [socket, queryClient]);
 
   const stats = statsData?.data?.data;
   const revenue = revenueData?.data?.data;
@@ -102,7 +159,7 @@ export default function AdminDashboard() {
     { icon: FiMapPin, label: 'Theatres', value: stats?.overview?.totalTheatres || 0, color: '#f59e0b' },
     { icon: FiActivity, label: 'Today\'s Bookings', value: stats?.overview?.todayBookings || 0, color: '#06b6d4', change: 22 },
     { icon: FiDollarSign, label: 'Monthly Revenue', value: Math.round(stats?.revenue?.monthly || 0), prefix: '₹', color: '#8b5cf6', change: parseFloat(stats?.revenue?.growth || 0) },
-    { icon: FiUsers, label: 'New Today', value: stats?.overview?.newUsersToday || 0, color: '#f97316' },
+    { icon: FiUsers, label: 'Live Users (Active Conns)', value: activeUsers, suffix: ` (${totalConnections})`, color: '#10b981', isLive: true },
   ];
 
   return (

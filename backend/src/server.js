@@ -20,6 +20,8 @@ import theatreRoutes from './routes/theatre.routes.js';
 import showRoutes from './routes/show.routes.js';
 import bookingRoutes from './routes/booking.routes.js';
 import adminRoutes from './routes/admin.routes.js';
+import tmdbRoutes from './routes/tmdb.routes.js';
+import notificationRoutes from './routes/notification.routes.js';
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -112,11 +114,13 @@ app.get('/api/health', async (req, res) => {
 // ROUTES
 // ============================
 app.use('/api/auth', authRoutes);
+app.use('/api/movies/tmdb', tmdbRoutes);
 app.use('/api/movies', movieRoutes);
 app.use('/api/theatres', theatreRoutes);
 app.use('/api/shows', showRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // ============================
 // ERROR HANDLING

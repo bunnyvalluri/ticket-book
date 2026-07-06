@@ -110,8 +110,11 @@ export const movieAPI = {
   addReview: (movieId, data) => api.post(`/movies/${movieId}/reviews`, data),
   // Admin
   create: (data) => api.post('/movies', data, { headers: { 'Content-Type': 'multipart/form-data' } }),
+  createJson: (data) => api.post('/movies', data),
   update: (id, data) => api.put(`/movies/${id}`, data),
   delete: (id) => api.delete(`/movies/${id}`),
+  tmdbSearch: (query) => api.get('/movies/tmdb/search', { params: { query } }),
+  tmdbDetails: (id) => api.get(`/movies/tmdb/details/${id}`),
 };
 
 // THEATRES
@@ -159,6 +162,14 @@ export const adminAPI = {
   updateCoupon: (id, data) => api.put(`/admin/coupons/${id}`, data),
   deleteCoupon: (id) => api.delete(`/admin/coupons/${id}`),
   getAuditLogs: (params) => api.get('/admin/audit-logs', { params }),
+};
+
+// NOTIFICATIONS
+export const notificationAPI = {
+  getAll: () => api.get('/notifications'),
+  markAsRead: (id) => api.patch(`/notifications/${id}/read`),
+  markAllRead: () => api.patch('/notifications/read-all'),
+  clearAll: () => api.delete('/notifications/clear'),
 };
 
 export default api;

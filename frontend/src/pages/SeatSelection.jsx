@@ -4,7 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { showAPI, bookingAPI } from '../services/api.js';
 import { useBookingStore, useAuthStore } from '../store/index.js';
-import { io } from 'socket.io-client';
+import { useSocket } from '../context/SocketContext.jsx';
 import toast from 'react-hot-toast';
 import { FiInfo, FiClock, FiZoomIn, FiZoomOut, FiArrowRight, FiX } from 'react-icons/fi';
 
@@ -36,7 +36,7 @@ export default function SeatSelection() {
   const { user } = useAuthStore();
   const { selectedSeats, selectSeat, deselectSeat, clearSeats, setCurrentShow } = useBookingStore();
   const [zoom, setZoom] = useState(1);
-  const [socket, setSocket] = useState(null);
+  const { socket } = useSocket();
   const [realtimeLocks, setRealtimeLocks] = useState(new Map()); // seatId -> userId
   const [timeLeft, setTimeLeft] = useState(null);
   const [sessionStart] = useState(Date.now());
@@ -72,41 +72,37 @@ export default function SeatSelection() {
 
   // Socket.io real-time
   useEffect(() => {
-    if (!showId || !user) return;
+    if (!socket || !showId) return;
 
-    const token = localStorage.getItem('accessToken');
-    const sock = io(import.meta.env.VITE_SOCKET_URL || window.location.origin, {
-      auth: { token },
-      transports: ['websocket', 'polling'],
-    });
+    socket.emit('show:join', showId);
 
-    sock.on('connect', () => {
-      sock.emit('show:join', showId);
-    });
-
-    sock.on('seat:locked', ({ seatId, userId }) => {
+    const handleSeatLocked = ({ seatId, userId }) => {
       setRealtimeLocks((prev) => new Map(prev).set(seatId, userId));
-    });
+    };
 
-    sock.on('seat:released', ({ seatId }) => {
+    const handleSeatReleased = ({ seatId }) => {
       setRealtimeLocks((prev) => {
         const next = new Map(prev);
         next.delete(seatId);
         return next;
       });
-    });
-
-    sock.on('seat:booked', ({ seatId }) => {
-      // Force re-render as booked
-      setRealtimeLocks((prev) => new Map(prev).set(seatId, 'BOOKED'));
-    });
-
-    setSocket(sock);
-    return () => {
-      sock.emit('show:leave', showId);
-      sock.disconnect();
     };
-  }, [showId, user]);
+
+    const handleSeatBooked = ({ seatId }) => {
+      setRealtimeLocks((prev) => new Map(prev).set(seatId, 'BOOKED'));
+    };
+
+    socket.on('seat:locked', handleSeatLocked);
+    socket.on('seat:released', handleSeatReleased);
+    socket.on('seat:booked', handleSeatBooked);
+
+    return () => {
+      socket.emit('show:leave', showId);
+      socket.off('seat:locked', handleSeatLocked);
+      socket.off('seat:released', handleSeatReleased);
+      socket.off('seat:booked', handleSeatBooked);
+    };
+  }, [socket, showId]);
 
   const handleSeatClick = useCallback((seat) => {
     if (seat.status === 'BOOKED' || seat.status === 'LOCKED') return;

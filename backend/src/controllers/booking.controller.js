@@ -5,6 +5,8 @@ import { paymentService } from '../services/payment.service.js';
 import { emailService } from '../services/email.service.js';
 import { ticketService } from '../services/ticket.service.js';
 import { getIO } from '../socket/index.js';
+import { createNotification } from '../services/notification.service.js';
+import logger from '../config/logger.js';
 import { v4 as uuidv4 } from 'uuid';
 
 // Create booking (initiate)
@@ -336,18 +338,23 @@ export const confirmPayment = async (req, res, next) => {
         bookingId: booking.id,
         bookingNumber: booking.bookingNumber,
       });
+      io.to('admin:dashboard').emit('admin:dashboard_update', {
+        type: 'BOOKING_CONFIRMED',
+        booking: {
+          id: booking.id,
+          grandTotal: booking.grandTotal,
+        }
+      });
     }
 
     // Create notification
-    await prisma.notification.create({
-      data: {
-        userId: req.user.id,
-        type: 'BOOKING_CONFIRMED',
-        title: 'Booking Confirmed! 🎫',
-        message: `Your booking ${booking.bookingNumber} for ${booking.show.movie.title} is confirmed.`,
-        data: { bookingId: booking.id },
-      },
-    });
+    await createNotification({
+      userId: req.user.id,
+      type: 'BOOKING_CONFIRMED',
+      title: 'Booking Confirmed! 🎫',
+      message: `Your booking ${booking.bookingNumber} for ${booking.show.movie.title} is confirmed.`,
+      data: { bookingId: booking.id },
+    }).catch((err) => logger.error('Real-time confirmation notification failed:', err));
 
     sendResponse(res, 200, {
       booking: { ...updatedBooking, qrCodeUrl: qrDataUrl },
@@ -481,10 +488,23 @@ export const cancelBooking = async (req, res, next) => {
       booking.seats.forEach(({ seat }) => {
         io.to(`show:${booking.showId}`).emit('seat:released', { seatId: seat.id, showId: booking.showId });
       });
+      io.to('admin:dashboard').emit('admin:dashboard_update', {
+        type: 'BOOKING_CANCELLED',
+        bookingId: booking.id,
+      });
     }
 
     // Send cancellation email
     emailService.sendCancellationEmail(booking.user.email, booking.user.firstName, booking).catch(() => {});
+
+    // Create notification
+    await createNotification({
+      userId: req.user.id,
+      type: 'BOOKING_CANCELLED',
+      title: 'Booking Cancelled ❌',
+      message: `Your booking for ${booking.show.movie.title} has been cancelled. Refund initiated.`,
+      data: { bookingId: booking.id },
+    }).catch((err) => logger.error('Real-time cancellation notification failed:', err));
 
     sendResponse(res, 200, null, 'Booking cancelled. Refund will be processed in 3-5 business days.');
   } catch (error) {
