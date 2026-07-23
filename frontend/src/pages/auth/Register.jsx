@@ -11,6 +11,24 @@ import { auth } from '../../config/firebase.js';
 import { GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { useAuthStore } from '../../store/index.js';
 
+const getFriendlyErrorMessage = (err) => {
+  if (!err) return 'Registration failed';
+  const code = err.code || '';
+  if (code === 'auth/email-already-in-use') {
+    return 'This email address is already registered. Please sign in.';
+  }
+  if (code === 'auth/weak-password') {
+    return 'Password is too weak. Please use at least 6 characters.';
+  }
+  if (code === 'auth/invalid-email') {
+    return 'Please enter a valid email address.';
+  }
+  if (code === 'auth/popup-blocked') {
+    return 'Browser blocked the popup window. Please allow popups for Google Sign-Up.';
+  }
+  return err.response?.data?.message || err.message?.replace(/^Firebase:\s*/, '') || 'Registration failed';
+};
+
 export default function Register() {
   const navigate = useNavigate();
   const { setAuth } = useAuthStore();
@@ -25,43 +43,41 @@ export default function Register() {
 
   const onSubmit = async (data) => {
     setLoading(true);
+    // 1. Try Firebase Auth first
     try {
-      const { confirmPassword, ...registerData } = data;
+      const userCred = await createUserWithEmailAndPassword(auth, data.email, data.password);
+      const fbUser = userCred.user;
+      const displayName = `${data.firstName} ${data.lastName}`.trim();
+      await updateProfile(fbUser, { displayName });
       
-      // Clean phone if empty so it doesn't fail backend isMobilePhone validation
-      if (!registerData.phone || !registerData.phone.trim()) {
-        delete registerData.phone;
-      }
-
-      await authAPI.register(registerData);
-      toast.success('Registration successful! Please check your email to verify account. 🎬');
-      navigate('/login');
-    } catch (err) {
-      // Create user in Firebase Auth if backend registration is offline
+      const authUser = {
+        id: fbUser.uid,
+        email: fbUser.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: data.email === 'admin@cinemax.com' ? 'SUPER_ADMIN' : 'CUSTOMER',
+        phone: data.phone || '',
+        avatarUrl: null,
+        isEmailVerified: fbUser.emailVerified,
+        status: 'ACTIVE',
+      };
+      const token = await fbUser.getIdToken();
+      setAuth(authUser, token);
+      toast.success(`Account created! Welcome, ${data.firstName}! 🎬`);
+      navigate('/');
+      return;
+    } catch (fbErr) {
+      // 2. Fallback to backend API
       try {
-        const userCred = await createUserWithEmailAndPassword(auth, data.email, data.password);
-        const fbUser = userCred.user;
-        const displayName = `${data.firstName} ${data.lastName}`.trim();
-        await updateProfile(fbUser, { displayName });
-        
-        const authUser = {
-          id: fbUser.uid,
-          email: fbUser.email,
-          firstName: data.firstName,
-          lastName: data.lastName,
-          role: 'CUSTOMER',
-          phone: data.phone || '',
-          avatarUrl: null,
-          isEmailVerified: fbUser.emailVerified,
-          status: 'ACTIVE',
-        };
-        const token = await fbUser.getIdToken();
-        setAuth(authUser, token);
-        toast.success(`Account created! Welcome, ${data.firstName}! 🎬`);
-        navigate('/');
-      } catch (fbErr) {
-        const msg = err.response?.data?.message || err.response?.data?.errors?.[0]?.msg || fbErr.message || 'Registration failed';
-        toast.error(msg);
+        const { confirmPassword, ...registerData } = data;
+        if (!registerData.phone || !registerData.phone.trim()) {
+          delete registerData.phone;
+        }
+        await authAPI.register(registerData);
+        toast.success('Registration successful! Please check your email to verify account. 🎬');
+        navigate('/login');
+      } catch (err) {
+        toast.error(getFriendlyErrorMessage(fbErr));
       }
     } finally {
       setLoading(false);
@@ -83,6 +99,7 @@ export default function Register() {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       const names = (user.displayName || 'Google User').split(' ');
@@ -91,7 +108,7 @@ export default function Register() {
         email: user.email,
         firstName: names[0] || 'Google',
         lastName: names.slice(1).join(' ') || 'User',
-        role: 'CUSTOMER',
+        role: user.email === 'admin@cinemax.com' ? 'SUPER_ADMIN' : 'CUSTOMER',
         avatarUrl: user.photoURL,
         isEmailVerified: user.emailVerified,
         status: 'ACTIVE',
@@ -103,7 +120,7 @@ export default function Register() {
     } catch (err) {
       console.error('Google Auth Error:', err);
       if (err.code !== 'auth/popup-closed-by-user') {
-        toast.error(err.message || 'Google sign-in failed');
+        toast.error(getFriendlyErrorMessage(err));
       }
     } finally {
       setLoading(false);

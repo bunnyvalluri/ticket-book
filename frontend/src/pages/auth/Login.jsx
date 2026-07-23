@@ -11,6 +11,24 @@ import { useAuthStore } from '../../store/index.js';
 import { auth } from '../../config/firebase.js';
 import { GoogleAuthProvider, signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 
+const getFriendlyErrorMessage = (err) => {
+  if (!err) return 'Authentication failed';
+  const code = err.code || '';
+  if (code === 'auth/invalid-credential' || code === 'auth/wrong-password' || code === 'auth/user-not-found') {
+    return 'Invalid email or password. Please check your credentials.';
+  }
+  if (code === 'auth/email-already-in-use') {
+    return 'This email is already registered. Please sign in.';
+  }
+  if (code === 'auth/popup-blocked') {
+    return 'Pop-up blocked by browser. Please allow popups for Google Sign-In.';
+  }
+  if (code === 'auth/unauthorized-domain') {
+    return 'Domain is not authorized in Firebase Console.';
+  }
+  return err.response?.data?.message || err.message?.replace(/^Firebase:\s*/, '') || 'Login failed';
+};
+
 export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -26,34 +44,36 @@ export default function Login() {
 
   const onSubmit = async (data) => {
     setLoading(true);
+    // 1. Try Firebase Auth first
     try {
-      const res = await authAPI.login(data);
-      const { user, accessToken } = res.data.data;
-      setAuth(user, accessToken);
-      toast.success(`Welcome back, ${user.firstName}! 🎬`);
+      const userCred = await signInWithEmailAndPassword(auth, data.email, data.password);
+      const fbUser = userCred.user;
+      const names = (fbUser.displayName || fbUser.email.split('@')[0]).split(' ');
+      const authUser = {
+        id: fbUser.uid,
+        email: fbUser.email,
+        firstName: names[0] || 'User',
+        lastName: names.slice(1).join(' ') || '',
+        role: fbUser.email === 'admin@cinemax.com' ? 'SUPER_ADMIN' : 'CUSTOMER',
+        avatarUrl: fbUser.photoURL,
+        isEmailVerified: fbUser.emailVerified,
+        status: 'ACTIVE',
+      };
+      const token = await fbUser.getIdToken();
+      setAuth(authUser, token);
+      toast.success(`Welcome back, ${authUser.firstName}! 🎬`);
       navigate(from, { replace: true });
-    } catch (err) {
-      // Try Firebase Email/Password Auth as fallback
+      return;
+    } catch (fbErr) {
+      // 2. If Firebase fails, fallback to backend API / Demo users
       try {
-        const userCred = await signInWithEmailAndPassword(auth, data.email, data.password);
-        const fbUser = userCred.user;
-        const names = (fbUser.displayName || fbUser.email.split('@')[0]).split(' ');
-        const authUser = {
-          id: fbUser.uid,
-          email: fbUser.email,
-          firstName: names[0] || 'User',
-          lastName: names.slice(1).join(' ') || '',
-          role: 'CUSTOMER',
-          avatarUrl: fbUser.photoURL,
-          isEmailVerified: fbUser.emailVerified,
-          status: 'ACTIVE',
-        };
-        const token = await fbUser.getIdToken();
-        setAuth(authUser, token);
-        toast.success(`Welcome back, ${authUser.firstName}! 🎬`);
+        const res = await authAPI.login(data);
+        const { user, accessToken } = res.data.data;
+        setAuth(user, accessToken);
+        toast.success(`Welcome back, ${user.firstName}! 🎬`);
         navigate(from, { replace: true });
-      } catch (fbErr) {
-        toast.error(err.response?.data?.message || fbErr.message || 'Login failed. Please check your credentials.');
+      } catch (backendErr) {
+        toast.error(getFriendlyErrorMessage(fbErr));
       }
     } finally {
       setLoading(false);
@@ -120,6 +140,7 @@ export default function Login() {
     setLoading(true);
     try {
       const provider = new GoogleAuthProvider();
+      provider.setCustomParameters({ prompt: 'select_account' });
       const result = await signInWithPopup(auth, provider);
       const user = result.user;
       const names = (user.displayName || 'Google User').split(' ');
@@ -128,7 +149,7 @@ export default function Login() {
         email: user.email,
         firstName: names[0] || 'Google',
         lastName: names.slice(1).join(' ') || 'User',
-        role: 'CUSTOMER',
+        role: user.email === 'admin@cinemax.com' ? 'SUPER_ADMIN' : 'CUSTOMER',
         avatarUrl: user.photoURL,
         isEmailVerified: user.emailVerified,
         status: 'ACTIVE',
@@ -140,7 +161,7 @@ export default function Login() {
     } catch (err) {
       console.error('Google Auth Error:', err);
       if (err.code !== 'auth/popup-closed-by-user') {
-        toast.error(err.message || 'Google sign-in failed');
+        toast.error(getFriendlyErrorMessage(err));
       }
     } finally {
       setLoading(false);
