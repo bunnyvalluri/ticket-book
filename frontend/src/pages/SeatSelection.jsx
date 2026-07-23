@@ -2,12 +2,14 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { format } from 'date-fns';
 import { showAPI } from '../services/api.js';
 import { useBookingStore, useAuthStore } from '../store/index.js';
 import { useSocket } from '../context/SocketContext.jsx';
 import { BrandLogoIcon } from '../components/common/BrandLogo.jsx';
 import toast from 'react-hot-toast';
-import { FiClock, FiZoomIn, FiZoomOut, FiArrowRight, FiX, FiCheck, FiFilm, FiShield } from 'react-icons/fi';
+import { FiClock, FiZoomIn, FiZoomOut, FiArrowRight, FiX, FiCheck, FiFilm, FiShield, FiEye } from 'react-icons/fi';
+import { FALLBACK_SHOWS } from '../data/fallbackData.js';
 
 const SEAT_TYPE_COLORS = {
   SILVER: '#64748b',
@@ -44,6 +46,13 @@ export default function SeatSelection() {
 
   const isProceeding = useRef(false);
   const selectedSeatsRef = useRef(selectedSeats);
+  const topViewRef = useRef(null);
+
+  // Auto scroll to top view when entering page or changing showtime
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    topViewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [showId]);
 
   useEffect(() => {
     selectedSeatsRef.current = selectedSeats;
@@ -164,6 +173,20 @@ export default function SeatSelection() {
     navigate('/booking/summary');
   };
 
+  const handleSwitchShow = (targetShow) => {
+    if (targetShow.id === showId) return;
+    selectedSeats.forEach((seat) => {
+      socket?.emit('seat:deselect', { seatId: seat.id, showId });
+    });
+    clearSeats();
+    setCurrentShow(targetShow);
+    navigate(`/shows/${targetShow.id}/seats`);
+    setTimeout(() => {
+      topViewRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }, 50);
+  };
+
   const formatTime = (seconds) => {
     const m = Math.floor(seconds / 60);
     const s = seconds % 60;
@@ -243,7 +266,61 @@ export default function SeatSelection() {
       </header>
 
       {/* Main Content Area */}
-      <div className="container-app py-8 space-y-8">
+      <div className="container-app py-8 space-y-6">
+
+        {/* Scroll to Top View Anchor */}
+        <div ref={topViewRef} className="scroll-mt-4" />
+
+        {/* Showtime Selector Bar (Tap showtime to view seats map in top view) */}
+        <div className="glass-card p-4 rounded-3xl border border-white/10 space-y-3 shadow-xl">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xs font-black uppercase tracking-wider text-purple-400 font-heading flex items-center gap-2">
+              <FiClock size={15} /> Select Showtime (Top View Seats)
+            </h3>
+            <span className="text-[11px] font-semibold text-slate-400 flex items-center gap-1">
+              <FiEye size={12} className="text-pink-400" /> Tap showtime to switch seat layout
+            </span>
+          </div>
+
+          <div className="flex gap-3 overflow-x-auto pb-1 scrollbar-thin">
+            {FALLBACK_SHOWS.map((st) => {
+              const isSelected = st.id === showId;
+              const availableSeats = st.availableSeats ?? 30;
+              const isFillingFast = availableSeats < 15;
+              const showTimeFormatted = st.startTime 
+                ? format(new Date(st.startTime), 'hh:mm a')
+                : '11:10 PM';
+
+              return (
+                <button
+                  key={st.id}
+                  onClick={() => handleSwitchShow(st)}
+                  className={`shrink-0 px-4 py-3 rounded-2xl glass-card border transition-all duration-300 text-left group ${
+                    isSelected
+                      ? 'bg-purple-900/40 border-purple-500 ring-2 ring-purple-500/50 shadow-lg glow-purple scale-102'
+                      : 'border-white/10 hover:border-purple-500/50 hover:bg-white/5 cursor-pointer'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className={`font-black text-sm font-numeric ${isSelected ? 'text-white' : 'text-slate-200 group-hover:text-purple-300'}`}>
+                      {showTimeFormatted}
+                    </span>
+                    <span className="text-[10px] font-bold px-1.5 py-0.5 rounded bg-purple-600/40 text-purple-200 uppercase font-heading">
+                      {st.format || 'IMAX 3D'}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center justify-between gap-4 mt-1.5 text-[11px]">
+                    <span className="text-emerald-400 font-black font-numeric">₹{st.price || 300}</span>
+                    <span className={`text-[9px] font-extrabold ${isFillingFast ? 'text-amber-400' : 'text-slate-400'}`}>
+                      {isFillingFast ? 'Filling Fast 🔥' : `${availableSeats} seats`}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
         
         {/* Title & Screen Indicator Header */}
         <div className="border-b border-slate-800 pb-6 flex flex-col md:flex-row items-center justify-between gap-4">
