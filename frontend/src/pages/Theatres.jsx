@@ -49,7 +49,7 @@ export default function Theatres() {
   const todayShows = (apiShows && apiShows.length > 0) ? apiShows : FALLBACK_SHOWS;
 
   // Filter shows by selected city
-  const cityShows = todayShows;
+  const cityShows = (todayShows && todayShows.length > 0) ? todayShows : FALLBACK_SHOWS;
 
   // Group shows by Theatre and Movie
   const theatreMovies = cityShows.reduce((acc, show) => {
