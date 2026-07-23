@@ -1,41 +1,40 @@
-import React, { Suspense, lazy } from 'react';
+import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from 'react-hot-toast';
 import { useAuthStore } from './store/index.js';
 import MainLayout from './components/layout/MainLayout.jsx';
 import AdminLayout from './components/layout/AdminLayout.jsx';
-import LoadingScreen from './components/ui/LoadingScreen.jsx';
 import AuthInitializer from './components/auth/AuthInitializer.jsx';
 import { SocketProvider } from './context/SocketContext.jsx';
 
-// Lazy loaded pages
-const Home = lazy(() => import('./pages/Home.jsx'));
-const MovieDetail = lazy(() => import('./pages/MovieDetail.jsx'));
-const Theatres = lazy(() => import('./pages/Theatres.jsx'));
-const SeatSelection = lazy(() => import('./pages/SeatSelection.jsx'));
-const BookingSummary = lazy(() => import('./pages/BookingSummary.jsx'));
-const Payment = lazy(() => import('./pages/Payment.jsx'));
-const PaymentSuccess = lazy(() => import('./pages/PaymentSuccess.jsx'));
-const PaymentFailed = lazy(() => import('./pages/PaymentFailed.jsx'));
-const BookingHistory = lazy(() => import('./pages/BookingHistory.jsx'));
-const TicketPage = lazy(() => import('./pages/TicketPage.jsx'));
-const UserProfile = lazy(() => import('./pages/UserProfile.jsx'));
-const Login = lazy(() => import('./pages/auth/Login.jsx'));
-const Register = lazy(() => import('./pages/auth/Register.jsx'));
-const ForgotPassword = lazy(() => import('./pages/auth/ForgotPassword.jsx'));
-const ResetPassword = lazy(() => import('./pages/auth/ResetPassword.jsx'));
-const VerifyEmail = lazy(() => import('./pages/auth/VerifyEmail.jsx'));
+// Direct Page Imports (No Lazy Loading)
+import Home from './pages/Home.jsx';
+import MovieDetail from './pages/MovieDetail.jsx';
+import Theatres from './pages/Theatres.jsx';
+import SeatSelection from './pages/SeatSelection.jsx';
+import BookingSummary from './pages/BookingSummary.jsx';
+import Payment from './pages/Payment.jsx';
+import PaymentSuccess from './pages/PaymentSuccess.jsx';
+import PaymentFailed from './pages/PaymentFailed.jsx';
+import BookingHistory from './pages/BookingHistory.jsx';
+import TicketPage from './pages/TicketPage.jsx';
+import UserProfile from './pages/UserProfile.jsx';
+import Login from './pages/auth/Login.jsx';
+import Register from './pages/auth/Register.jsx';
+import ForgotPassword from './pages/auth/ForgotPassword.jsx';
+import ResetPassword from './pages/auth/ResetPassword.jsx';
+import VerifyEmail from './pages/auth/VerifyEmail.jsx';
 
-// Admin pages
-const AdminDashboard = lazy(() => import('./pages/admin/Dashboard.jsx'));
-const AdminMovies = lazy(() => import('./pages/admin/Movies.jsx'));
-const AdminTheatres = lazy(() => import('./pages/admin/Theatres.jsx'));
-const AdminShows = lazy(() => import('./pages/admin/Shows.jsx'));
-const AdminBookings = lazy(() => import('./pages/admin/Bookings.jsx'));
-const AdminUsers = lazy(() => import('./pages/admin/Users.jsx'));
-const AdminCoupons = lazy(() => import('./pages/admin/Coupons.jsx'));
-const AdminAnalytics = lazy(() => import('./pages/admin/Analytics.jsx'));
+// Admin Page Imports
+import AdminDashboard from './pages/admin/Dashboard.jsx';
+import AdminMovies from './pages/admin/Movies.jsx';
+import AdminTheatres from './pages/admin/Theatres.jsx';
+import AdminShows from './pages/admin/Shows.jsx';
+import AdminBookings from './pages/admin/Bookings.jsx';
+import AdminUsers from './pages/admin/Users.jsx';
+import AdminCoupons from './pages/admin/Coupons.jsx';
+import AdminAnalytics from './pages/admin/Analytics.jsx';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -69,8 +68,7 @@ function App() {
       <BrowserRouter>
         <AuthInitializer>
           <SocketProvider>
-            <Suspense fallback={<LoadingScreen />}>
-              <Routes>
+            <Routes>
               {/* Auth Routes */}
               <Route path="/login" element={<AuthRoute><Login /></AuthRoute>} />
               <Route path="/register" element={<AuthRoute><Register /></AuthRoute>} />
@@ -128,7 +126,6 @@ function App() {
 
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
-          </Suspense>
           </SocketProvider>
         </AuthInitializer>
 

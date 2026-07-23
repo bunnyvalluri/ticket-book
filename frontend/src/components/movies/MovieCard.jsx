@@ -58,7 +58,6 @@ export default function MovieCard({ movie, index = 0 }) {
               e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=500&q=80';
             }}
             className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
-            loading="lazy"
           />
 
           {/* Dark Glass Overlay on Hover */}
