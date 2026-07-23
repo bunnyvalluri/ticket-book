@@ -130,15 +130,13 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div className="space-y-4">
-            <h4 className="font-black text-xs uppercase tracking-widest text-slate-200 font-heading flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
+            <h4 className="font-heading font-bold text-sm text-white border-b border-purple-500/30 pb-2.5 inline-block">
               Explore Movies
             </h4>
             <ul className="space-y-2.5 text-xs font-sans">
               {['Now Showing', 'Coming Soon', 'IMAX 3D Experience', 'Top Rated Blockbusters', 'Trending Theatres'].map((link) => (
                 <li key={link}>
-                  <Link to="/" className="text-slate-400 hover:text-purple-400 transition-colors flex items-center gap-2 font-medium">
-                    <span className="w-1 h-1 rounded-full bg-purple-500/60" />
+                  <Link to="/" className="text-slate-400 hover:text-purple-300 transition-colors font-medium hover:translate-x-1 duration-200 inline-block">
                     {link}
                   </Link>
                 </li>
@@ -148,15 +146,13 @@ export default function Footer() {
 
           {/* Company & Support */}
           <div className="space-y-4">
-            <h4 className="font-black text-xs uppercase tracking-widest text-slate-200 font-heading flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
+            <h4 className="font-heading font-bold text-sm text-white border-b border-pink-500/30 pb-2.5 inline-block">
               Company & Help
             </h4>
             <ul className="space-y-2.5 text-xs font-sans">
               {['About CineMax', 'Careers', 'Partner Cinema Portal', 'Privacy Policy', 'Terms of Service'].map((link) => (
                 <li key={link}>
-                  <Link to="/" className="text-slate-400 hover:text-pink-400 transition-colors flex items-center gap-2 font-medium">
-                    <span className="w-1 h-1 rounded-full bg-pink-500/60" />
+                  <Link to="/" className="text-slate-400 hover:text-pink-300 transition-colors font-medium hover:translate-x-1 duration-200 inline-block">
                     {link}
                   </Link>
                 </li>
@@ -166,9 +162,8 @@ export default function Footer() {
 
           {/* Apps & Support Contact */}
           <div className="space-y-4">
-            <h4 className="font-black text-xs uppercase tracking-widest text-slate-200 font-heading flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-              Support & App
+            <h4 className="font-heading font-bold text-sm text-white border-b border-amber-500/30 pb-2.5 inline-block">
+              Support & Mobile App
             </h4>
             <div className="space-y-3 text-xs text-slate-400 font-sans">
               <a href="mailto:support@cinemax.com" className="flex items-center gap-2.5 hover:text-purple-300 transition-colors font-medium">
