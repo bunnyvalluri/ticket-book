@@ -584,6 +584,10 @@ export default function UserProfile() {
                           <img
                             src={b.show?.movie?.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200'}
                             alt={b.show?.movie?.title}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200';
+                            }}
                             className="w-12 h-16 object-cover rounded-xl border border-white/10"
                           />
                           <div>

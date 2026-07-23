@@ -332,7 +332,15 @@ export default function AdminDashboard() {
                 }`}>
                   #{i + 1}
                 </span>
-                <img src={movie.posterUrl} alt={movie.title} className="w-9 h-12 rounded-lg object-cover border border-white/10 shrink-0" />
+                <img
+                  src={movie.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200'}
+                  alt={movie.title}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200';
+                  }}
+                  className="w-9 h-12 rounded-lg object-cover border border-white/10 shrink-0"
+                />
                 <div className="flex-1 min-w-0">
                   <p className="text-xs font-bold text-white truncate">{movie.title}</p>
                   <div className="flex items-center justify-between text-[10px] text-slate-400 mt-0.5">

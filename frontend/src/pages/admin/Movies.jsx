@@ -311,6 +311,10 @@ export default function AdminMovies() {
                       <img
                         src={movie.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&q=80'}
                         alt={movie.title}
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=400&q=80';
+                        }}
                         className="w-9 h-13 object-cover rounded-lg flex-shrink-0"
                         style={{ height: '52px' }}
                       />

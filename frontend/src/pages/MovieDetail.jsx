@@ -155,6 +155,10 @@ export default function MovieDetail() {
         <img 
           src={movie.bannerUrl || movie.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1400&q=80'} 
           alt={movie.title}
+          onError={(e) => {
+            e.currentTarget.onerror = null;
+            e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1400&q=80';
+          }}
           className="w-full h-full object-cover brightness-40 blur-sm scale-105"
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#070710] via-[#070710]/60 to-transparent" />
@@ -171,6 +175,10 @@ export default function MovieDetail() {
               <img 
                 src={movie.posterUrl || 'https://images.unsplash.com/photo-1542204172-e7052809f852?w=600&q=80'} 
                 alt={movie.title}
+                onError={(e) => {
+                  e.currentTarget.onerror = null;
+                  e.currentTarget.src = 'https://images.unsplash.com/photo-1542204172-e7052809f852?w=600&q=80';
+                }}
                 className="w-full aspect-[2/3] object-cover transition-transform duration-500 group-hover:scale-105"
               />
 
@@ -266,6 +274,10 @@ export default function MovieDetail() {
                       <img 
                         src={c.photoUrl || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&q=80'} 
                         alt={c.name} 
+                        onError={(e) => {
+                          e.currentTarget.onerror = null;
+                          e.currentTarget.src = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&q=80';
+                        }}
                         className="w-16 h-16 rounded-2xl object-cover mx-auto glass-card border border-white/10 shadow-md"
                       />
                       <div>

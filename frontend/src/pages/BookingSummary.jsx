@@ -114,6 +114,10 @@ export default function BookingSummary() {
                 <img
                   src={show.movie?.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200'}
                   alt={show.movie?.title}
+                  onError={(e) => {
+                    e.currentTarget.onerror = null;
+                    e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200';
+                  }}
                   className="w-24 h-36 object-cover rounded-2xl shadow-md border border-white/10 shrink-0"
                 />
                 <div className="space-y-2">

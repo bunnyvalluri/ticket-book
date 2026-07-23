@@ -115,6 +115,10 @@ export default function TicketPage() {
             <img
               src={movie?.bannerUrl || movie?.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1000'}
               alt={movie?.title}
+              onError={(e) => {
+                e.currentTarget.onerror = null;
+                e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=1000';
+              }}
               className="w-full h-full object-cover brightness-50 scale-105"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-[#141428] via-transparent to-transparent" />

@@ -172,6 +172,10 @@ export default function AdminShows() {
                   <img
                     src={movie?.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200'}
                     alt={movie?.title}
+                    onError={(e) => {
+                      e.currentTarget.onerror = null;
+                      e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200';
+                    }}
                     className="w-14 h-20 object-cover rounded-xl border border-white/10 shrink-0"
                   />
                   <div className="space-y-1">

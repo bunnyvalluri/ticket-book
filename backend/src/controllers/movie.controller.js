@@ -72,13 +72,17 @@ export const getMovies = async (req, res, next) => {
   }
 };
 
-// Get single movie by slug
+// Get single movie by slug or ID
 export const getMovieBySlug = async (req, res, next) => {
   try {
     const { slug } = req.params;
 
-    const movie = await prisma.movie.findUnique({
-      where: { slug, deletedAt: null },
+    // Try finding by unique slug first, fallback to unique id
+    let movie = await prisma.movie.findFirst({
+      where: {
+        OR: [{ slug }, { id: slug }],
+        deletedAt: null,
+      },
       include: {
         genres: { include: { genre: true } },
         languages: { include: { language: true } },
@@ -169,12 +173,17 @@ export const createMovie = async (req, res, next) => {
       cast, crew, isFeatured, isTrending, metaTitle, metaDescription,
     } = req.body;
 
-    const slug = title
+    let slug = title
       .toLowerCase()
       .replace(/[^a-z0-9\s-]/g, '')
       .replace(/\s+/g, '-')
       .replace(/-+/g, '-')
       .trim();
+
+    const existingSlug = await prisma.movie.findFirst({ where: { slug } });
+    if (existingSlug) {
+      slug = `${slug}-${Date.now().toString().slice(-4)}`;
+    }
 
     const posterUrl = req.files?.poster?.[0]?.path || req.body.posterUrl;
     const bannerUrl = req.files?.banner?.[0]?.path || req.body.bannerUrl;
@@ -188,7 +197,7 @@ export const createMovie = async (req, res, next) => {
     const movie = await prisma.movie.create({
       data: {
         title,
-        slug: `${slug}-${Date.now()}`,
+        slug,
         synopsis,
         tagline,
         posterUrl,

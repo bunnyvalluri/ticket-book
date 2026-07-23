@@ -300,6 +300,10 @@ export default function BookingHistory() {
                           <img
                             src={movie?.posterUrl || 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200'}
                             alt={movie?.title}
+                            onError={(e) => {
+                              e.currentTarget.onerror = null;
+                              e.currentTarget.src = 'https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?w=200';
+                            }}
                             className="w-28 h-40 object-cover rounded-2xl border border-white/10 shadow-lg"
                           />
                           {isUpcoming && (

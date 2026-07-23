@@ -334,42 +334,71 @@ export default function Navbar() {
                 {/* User Card Dropdown */}
                 <div className="relative">
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
+                    whileHover={{ scale: 1.03 }}
+                    whileTap={{ scale: 0.97 }}
                     onClick={() => setUserDropdown(!userDropdown)}
-                    className="h-9 flex items-center gap-2 p-1 pl-1.5 pr-2.5 rounded-full glass hover:border-purple-500/50 transition-all border border-white/10"
+                    className="h-10 flex items-center gap-2.5 p-1 pl-1.5 pr-3 rounded-full glass hover:border-purple-500/60 transition-all duration-300 border border-white/15 shadow-lg group"
                   >
                     {user?.avatarUrl ? (
-                      <img src={user.avatarUrl} className="w-7 h-7 rounded-full object-cover border border-purple-400" alt="avatar" />
+                      <img src={user.avatarUrl} className="w-8 h-8 rounded-full object-cover ring-2 ring-purple-500/40 group-hover:ring-purple-400 transition-all" alt="avatar" />
                     ) : (
-                      <div className="w-7 h-7 rounded-full gradient-bg flex items-center justify-center text-white text-[11px] font-black shadow-md ring-2 ring-purple-500/30 shrink-0">
+                      <div className="w-8 h-8 rounded-full gradient-bg flex items-center justify-center text-white text-xs font-black shadow-md ring-2 ring-purple-500/40 group-hover:ring-purple-400 transition-all shrink-0">
                         {user?.firstName?.[0]}{user?.lastName?.[0]}
                       </div>
                     )}
-                    <span className="text-xs font-bold text-slate-200 hidden sm:block">
-                      {user?.firstName}
-                    </span>
-                    <FiChevronDown size={13} className={`text-slate-400 transition-transform ${userDropdown ? 'rotate-180 text-purple-400' : ''}`} />
+                    <div className="flex flex-col text-left hidden sm:flex">
+                      <span className="text-xs font-extrabold text-white group-hover:text-purple-300 transition-colors leading-tight">
+                        {user?.firstName}
+                      </span>
+                      <span className="text-[9px] font-semibold text-purple-400/80 uppercase tracking-widest leading-none">
+                        {isAdmin ? 'Admin' : 'Member'}
+                      </span>
+                    </div>
+                    <FiChevronDown size={14} className={`text-slate-400 group-hover:text-purple-300 transition-transform duration-300 ${userDropdown ? 'rotate-180 text-purple-400' : ''}`} />
                   </motion.button>
 
                   <AnimatePresence>
                     {userDropdown && (
                       <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                        initial={{ opacity: 0, y: 12, scale: 0.95 }}
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 top-12 glass-card rounded-2xl overflow-hidden shadow-2xl min-w-[220px] z-50 border border-white/15"
+                        transition={{ duration: 0.2, ease: 'easeOut' }}
+                        className="absolute right-0 top-14 glass-card rounded-3xl overflow-hidden shadow-2xl min-w-[250px] z-50 border border-white/20 backdrop-blur-2xl bg-[#0b0c1b]/95"
                       >
-                        <div className="p-3.5 border-b border-white/10 bg-white/5">
-                          <p className="font-extrabold text-xs text-white">{user?.firstName} {user?.lastName}</p>
-                          <p className="text-[11px] text-slate-400 truncate">{user?.email}</p>
-                          {isAdmin && (
-                            <span className="inline-block mt-1.5 px-2 py-0.5 text-[9px] font-black uppercase rounded-md bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                              Admin Access
-                            </span>
-                          )}
+                        {/* Profile Header Header Box */}
+                        <div className="p-4 border-b border-white/10 bg-gradient-to-br from-white/10 via-purple-900/10 to-transparent">
+                          <div className="flex items-center gap-3">
+                            {user?.avatarUrl ? (
+                              <img src={user.avatarUrl} className="w-10 h-10 rounded-2xl object-cover ring-2 ring-purple-500/50 shadow-md" alt="avatar" />
+                            ) : (
+                              <div className="w-10 h-10 rounded-2xl gradient-bg flex items-center justify-center text-white text-sm font-black shadow-lg ring-2 ring-purple-500/50 shrink-0">
+                                {user?.firstName?.[0]}{user?.lastName?.[0]}
+                              </div>
+                            )}
+                            <div className="overflow-hidden">
+                              <p className="font-black text-sm text-white truncate">{user?.firstName} {user?.lastName}</p>
+                              <p className="text-[11px] font-medium text-slate-400 truncate">{user?.email}</p>
+                            </div>
+                          </div>
+
+                          <div className="mt-3 flex items-center gap-2">
+                            {isAdmin ? (
+                              <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-xl bg-gradient-to-r from-amber-500/20 via-yellow-500/20 to-amber-500/20 text-amber-300 border border-amber-500/40 shadow-[0_0_12px_rgba(245,158,11,0.2)] flex items-center gap-1">
+                                <FiShield size={11} className="text-amber-400" />
+                                Admin Access
+                              </span>
+                            ) : (
+                              <span className="px-2.5 py-1 text-[10px] font-black uppercase tracking-wider rounded-xl bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center gap-1">
+                                <FiCheckCircle size={11} className="text-purple-400" />
+                                CineMax VIP
+                              </span>
+                            )}
+                          </div>
                         </div>
 
-                        <div className="p-1">
+                        {/* Navigation Items */}
+                        <div className="p-2 space-y-1">
                           {[
                             { icon: FiUser, label: 'Profile Settings', to: '/profile' },
                             { icon: FiFilm, label: 'My Tickets & Bookings', to: '/bookings' },
@@ -380,24 +409,31 @@ export default function Navbar() {
                               key={label}
                               to={to}
                               onClick={() => setUserDropdown(false)}
-                              className={`flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold transition-all ${
+                              className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-200 group/item relative overflow-hidden ${
                                 special
-                                  ? 'text-amber-400 hover:bg-amber-500/10'
-                                  : 'text-slate-300 hover:bg-white/5 hover:text-white'
+                                  ? 'text-amber-300 hover:bg-amber-500/15 border border-amber-500/20 shadow-[0_0_10px_rgba(245,158,11,0.1)]'
+                                  : 'text-slate-200 hover:bg-purple-600/20 hover:text-white border border-transparent hover:border-purple-500/30'
                               }`}
                             >
-                              <Icon size={15} />
-                              {label}
+                              <div className={`p-1.5 rounded-xl transition-all ${
+                                special 
+                                  ? 'bg-amber-500/20 text-amber-400 group-hover/item:scale-110' 
+                                  : 'bg-white/5 text-purple-400 group-hover/item:bg-purple-500/30 group-hover/item:text-purple-200 group-hover/item:scale-110'
+                              }`}>
+                                <Icon size={14} />
+                              </div>
+                              <span className="flex-1">{label}</span>
                             </Link>
                           ))}
                         </div>
 
-                        <div className="p-1 border-t border-white/10">
+                        {/* Logout Section */}
+                        <div className="p-2 border-t border-white/10 bg-white/[0.02]">
                           <button
                             onClick={() => { handleLogout(); setUserDropdown(false); }}
-                            className="flex items-center gap-3 px-3 py-2 rounded-xl text-xs font-semibold w-full text-left text-pink-400 hover:bg-pink-500/10 transition-all"
+                            className="flex items-center justify-center gap-2.5 px-3 py-2.5 rounded-2xl text-xs font-extrabold w-full text-red-400 bg-red-500/10 hover:bg-red-500/20 border border-red-500/30 hover:border-red-500/50 transition-all duration-200 shadow-md group/logout"
                           >
-                            <FiLogOut size={15} />
+                            <FiLogOut size={15} className="group-hover/logout:-translate-x-0.5 transition-transform" />
                             Log Out
                           </button>
                         </div>
