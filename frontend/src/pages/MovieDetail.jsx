@@ -456,32 +456,7 @@ export default function MovieDetail() {
               </div>
             )}
 
-            {/* Photo Gallery & Movie Stills */}
-            {movie.gallery?.length > 0 && (
-              <div className="space-y-4">
-                <h3 className="text-xs font-black uppercase tracking-wider text-slate-300 font-heading flex items-center gap-2">
-                  <FiCamera className="text-cyan-400" /> Movie Gallery & Stills
-                </h3>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-                  {movie.gallery.map((g) => (
-                    <div 
-                      key={g.id} 
-                      onClick={() => setActiveImageModal(g.imageUrl)}
-                      className="relative aspect-video rounded-2xl overflow-hidden glass-card border border-white/10 group cursor-pointer"
-                    >
-                      <img 
-                        src={g.imageUrl} 
-                        alt={g.caption || 'Movie Still'} 
-                        className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <span className="text-[10px] font-bold text-white px-3 py-1 rounded-full glass-card border border-white/20">Enlarge</span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
+
 
             {/* Trailers & Videos Section */}
             {movie.trailers?.length > 0 && (
