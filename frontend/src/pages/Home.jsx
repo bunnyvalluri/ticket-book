@@ -158,13 +158,14 @@ export default function Home() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="mb-10 p-6 rounded-3xl glass-card border border-white/15 shadow-2xl"
+              className="mb-10 p-6 sm:p-8 rounded-3xl bg-slate-900/85 backdrop-blur-2xl border border-slate-800 shadow-2xl space-y-6"
             >
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 
                 {/* Languages Filter */}
-                <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider mb-3 text-slate-400 block">
+                <div className="lg:col-span-5 space-y-3">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-400 font-heading flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-purple-500" />
                     Languages
                   </label>
                   <div className="flex flex-wrap gap-2">
@@ -172,10 +173,10 @@ export default function Home() {
                       <button
                         key={lang.id}
                         onClick={() => setActiveLanguage(activeLanguage === lang.code ? '' : lang.code)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                        className={`px-4 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 ${
                           activeLanguage === lang.code
-                            ? 'bg-purple-600 text-white shadow-md'
-                            : 'glass-card text-slate-300 hover:text-white'
+                            ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg glow-purple scale-105'
+                            : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60'
                         }`}
                       >
                         {lang.name}
@@ -185,37 +186,39 @@ export default function Home() {
                 </div>
 
                 {/* Rating Filter */}
-                <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider mb-3 text-slate-400 block">
+                <div className="lg:col-span-4 space-y-3">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-400 font-heading flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                     Min IMDb Score
                   </label>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {[6, 7, 7.5, 8, 8.5].map((r) => (
                       <button
                         key={r}
                         onClick={() => setMinRating(minRating == r ? '' : r)}
-                        className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1 ${
+                        className={`px-3.5 py-2 rounded-xl text-xs font-bold tracking-wide transition-all duration-200 flex items-center gap-1.5 ${
                           minRating == r
-                            ? 'bg-amber-500 text-slate-950 font-bold shadow-md'
-                            : 'glass-card text-slate-300 hover:text-amber-400'
+                            ? 'bg-amber-400 text-slate-950 font-black shadow-lg glow-gold scale-105'
+                            : 'bg-slate-800/80 hover:bg-slate-700 text-slate-300 border border-slate-700/60'
                         }`}
                       >
-                        <FiStar size={11} className={minRating == r ? 'fill-slate-950' : 'fill-yellow-400'} />
-                        {r}+
+                        <FiStar size={12} className={minRating == r ? 'fill-slate-950 text-slate-950' : 'fill-amber-400 text-amber-400'} />
+                        <span>{r}+</span>
                       </button>
                     ))}
                   </div>
                 </div>
 
                 {/* Sort dropdown */}
-                <div>
-                  <label className="text-[11px] font-bold uppercase tracking-wider mb-3 text-slate-400 block">
+                <div className="lg:col-span-3 space-y-3">
+                  <label className="text-xs font-black uppercase tracking-widest text-slate-400 font-heading flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-pink-500" />
                     Sort By
                   </label>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="glass-input text-xs rounded-xl p-2.5 w-full outline-none"
+                    className="w-full bg-slate-950 text-slate-200 text-xs font-bold rounded-xl px-4 py-2.5 border border-slate-700/80 focus:border-purple-500 focus:outline-none shadow-md cursor-pointer"
                   >
                     <option value="createdAt" className="bg-slate-900">Recently Added</option>
                     <option value="releaseDate" className="bg-slate-900">Release Date</option>
@@ -226,12 +229,14 @@ export default function Home() {
               </div>
 
               {(activeGenre || activeLanguage || minRating) && (
-                <button
-                  onClick={() => { setActiveGenre(''); setActiveLanguage(''); setMinRating(''); }}
-                  className="mt-5 text-xs font-semibold text-pink-400 hover:text-pink-300 flex items-center gap-1"
-                >
-                  <FiX size={14} /> Clear all active filters
-                </button>
+                <div className="pt-2 border-t border-slate-800 flex justify-end">
+                  <button
+                    onClick={() => { setActiveGenre(''); setActiveLanguage(''); setMinRating(''); }}
+                    className="text-xs font-bold text-pink-400 hover:text-pink-300 flex items-center gap-1.5 transition-colors"
+                  >
+                    <FiX size={14} /> Clear all active filters
+                  </button>
+                </div>
               )}
             </motion.div>
           )}
