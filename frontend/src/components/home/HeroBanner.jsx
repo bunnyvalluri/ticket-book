@@ -63,36 +63,36 @@ export default function HeroBanner({ movies = [] }) {
               
               {/* Badges & Tags */}
               <div className="flex flex-wrap items-center gap-2.5">
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-purple-600/30 text-purple-300 border border-purple-500/40 backdrop-blur-md">
+                <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-purple-600/30 text-purple-300 border border-purple-500/40 backdrop-blur-md font-heading tracking-wide">
                   {movie.ageRating || 'U/A'}
                 </span>
                 
                 {movie.genres?.[0] && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-pink-600/20 text-pink-300 border border-pink-500/30 backdrop-blur-md">
+                  <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-pink-600/20 text-pink-300 border border-pink-500/30 backdrop-blur-md font-heading tracking-wide">
                     {movie.genres[0].genre?.name}
                   </span>
                 )}
 
-                <span className="px-3 py-1 rounded-full text-xs font-bold bg-cyan-600/20 text-cyan-300 border border-cyan-500/30 backdrop-blur-md flex items-center gap-1">
-                  <FiFilm size={12} />
+                <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-cyan-600/20 text-cyan-300 border border-cyan-500/30 backdrop-blur-md flex items-center gap-1.5 font-heading tracking-wide">
+                  <FiFilm size={13} />
                   IMAX 3D & 4DX
                 </span>
 
                 {movie.isTrending && (
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 backdrop-blur-md animate-pulse">
+                  <span className="px-3.5 py-1 rounded-full text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30 backdrop-blur-md animate-pulse font-heading tracking-wide">
                     🔥 #1 Trending
                   </span>
                 )}
               </div>
 
               {/* Movie Title */}
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
+              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight font-heading uppercase">
                 {movie.title}
               </h1>
 
               {/* Tagline */}
               {movie.tagline && (
-                <p className="text-base sm:text-lg font-semibold gradient-text italic">
+                <p className="text-base sm:text-lg font-bold gradient-text italic font-heading">
                   "{movie.tagline}"
                 </p>
               )}
@@ -100,20 +100,20 @@ export default function HeroBanner({ movies = [] }) {
               {/* Metadata Stats */}
               <div className="flex flex-wrap items-center gap-5 text-xs text-slate-300 font-medium">
                 {movie.imdbRating && (
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl glass-card">
+                  <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl glass-card">
                     <FiStar className="fill-yellow-400 text-yellow-400" size={15} />
-                    <span className="font-bold text-white text-sm">{movie.imdbRating}</span>
-                    <span className="text-slate-400">/10 IMDb</span>
+                    <span className="font-black text-white text-base font-numeric">{movie.imdbRating}</span>
+                    <span className="text-slate-400 text-xs font-heading">/10 IMDb</span>
                   </div>
                 )}
                 {movie.duration && (
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl glass-card">
+                  <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl glass-card font-numeric font-bold">
                     <FiClock className="text-purple-400" size={15} />
                     <span>{Math.floor(movie.duration / 60)}h {movie.duration % 60}m</span>
                   </div>
                 )}
                 {movie.releaseDate && (
-                  <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl glass-card">
+                  <div className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl glass-card font-numeric font-bold">
                     <FiCalendar className="text-pink-400" size={15} />
                     <span>{new Date(movie.releaseDate).getFullYear()} Release</span>
                   </div>

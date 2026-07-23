@@ -11,10 +11,10 @@ export default function GenreFilter({ genres = [], onSelect, active }) {
     <section className="mb-14">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2">
+          <h2 className="text-xl sm:text-2xl font-black text-white flex items-center gap-2 font-heading tracking-tight">
             <span>🎬</span> Explore Movies by Genre
           </h2>
-          <p className="text-xs text-slate-400 mt-1">Select a category to filter live showtimes</p>
+          <p className="text-xs text-slate-400 mt-1 font-sans">Select a category to filter live showtimes</p>
         </div>
       </div>
 
@@ -47,7 +47,7 @@ export default function GenreFilter({ genres = [], onSelect, active }) {
               )}
               <span className="text-2xl">{GENRE_ICONS[genre.slug] || '🍿'}</span>
               <span
-                className="text-xs font-bold truncate max-w-full"
+                className="text-xs font-bold truncate max-w-full font-heading tracking-wide"
                 style={{ color: isActive ? '#ffffff' : '#94a3b8' }}
               >
                 {genre.name}

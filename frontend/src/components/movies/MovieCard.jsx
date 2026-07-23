@@ -66,7 +66,7 @@ export default function MovieCard({ movie, index = 0 }) {
 
           {/* Status Badge */}
           <div className="absolute top-3 left-3 z-10">
-            <span className={`text-[10px] font-bold px-2.5 py-1 rounded-full border backdrop-blur-md ${status.bg} ${status.text} ${status.border}`}>
+            <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-full border backdrop-blur-md font-heading ${status.bg} ${status.text} ${status.border}`}>
               {status.label}
             </span>
           </div>
@@ -90,7 +90,7 @@ export default function MovieCard({ movie, index = 0 }) {
 
           {/* Rating Badge */}
           {movie.imdbRating && (
-            <div className="absolute top-12 left-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md glass-card text-[11px] font-bold text-white border border-white/10">
+            <div className="absolute top-12 left-3 z-10 flex items-center gap-1 px-2 py-0.5 rounded-md glass-card text-[11px] font-bold text-white border border-white/10 font-numeric">
               <FiStar className="fill-yellow-400 text-yellow-400" size={11} />
               <span>{movie.imdbRating}</span>
             </div>
@@ -98,18 +98,18 @@ export default function MovieCard({ movie, index = 0 }) {
 
           {/* Format Tags */}
           <div className="absolute bottom-16 left-3 right-3 z-10 flex flex-wrap gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-            <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-purple-600/80 text-white backdrop-blur-sm">
+            <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-purple-600/80 text-white backdrop-blur-sm font-heading">
               IMAX 3D
             </span>
-            <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-pink-600/80 text-white backdrop-blur-sm">
+            <span className="text-[9px] font-bold px-2 py-0.5 rounded bg-pink-600/80 text-white backdrop-blur-sm font-heading">
               Dolby Atmos
             </span>
           </div>
 
           {/* Slide-Up Book Button on Hover */}
           <div className="absolute inset-x-0 bottom-0 p-3 z-10 translate-y-full group-hover:translate-y-0 transition-transform duration-300">
-            <div className="btn-primary py-2.5 text-center text-xs font-bold rounded-xl w-full flex items-center justify-center gap-1.5 shadow-xl">
-              <HiOutlineTicket size={14} />
+            <div className="btn-primary py-2.5 text-center text-xs font-black uppercase tracking-wider rounded-xl w-full flex items-center justify-center gap-1.5 shadow-xl font-heading">
+              <HiOutlineTicket size={15} />
               Book Seats
             </div>
           </div>
@@ -117,20 +117,20 @@ export default function MovieCard({ movie, index = 0 }) {
 
         {/* Info Content */}
         <div className="pt-3 px-1">
-          <h3 className="font-bold text-sm text-slate-100 group-hover:text-purple-400 transition-colors line-clamp-1">
+          <h3 className="font-heading font-extrabold text-sm sm:text-base text-slate-100 group-hover:text-purple-400 transition-colors line-clamp-1">
             {movie.title}
           </h3>
           
           <div className="flex items-center justify-between mt-1 text-xs">
             {movie.duration ? (
-              <span className="flex items-center gap-1 text-slate-400">
+              <span className="flex items-center gap-1 text-slate-400 font-numeric font-bold">
                 <FiClock size={12} className="text-purple-400" />
                 {Math.floor(movie.duration / 60)}h {movie.duration % 60}m
               </span>
             ) : <span />}
 
             {movie.genres?.[0] && (
-              <span className="font-semibold text-purple-400 text-[11px]">
+              <span className="font-bold text-purple-400 text-[11px] font-heading">
                 {movie.genres[0].genre?.name}
               </span>
             )}
